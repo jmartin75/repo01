@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# Call: $ dscr <scr_pathnm> 
+# Goal: dscr = describe nix or sql custom scripts  -- needs improvement!
+# e.g.: $ dscr iov		# describe bin/iov  
+#
+#   eg: $ dscr  ; $ dscr sql 
+#
+#set -x 
+
+cmduse() {
+echo -e "\n cmduse: $ dscr <scr_pathnm> \n"
+echo -e "Example: $ dscr dscr	-- describe 'dscr' nix script "
+echo -e "       : $ dscr id.sql	-- describe ~sql/id.sql "
+}
+
+if [ -s "$1" ] ;then
+  FP=$1
+  lookfor='^# ....: '
+
+elif [ -s "`which $1 2>/dev/null`" ] ;then
+  FP=`which $1`
+  lookfor='^# ....:'
+
+elif [ -s ~/sql/${1} ] ;then
+  FP=~/sql/${1} 
+  lookfor='^--'
+
+else 
+  echo -e "\nFile $1 not found."
+  cmduse
+  exit
+fi
+
+#__ dscr $FP
+echo ;egrep "$lookfor" $FP ;echo
+
+
+
+exit
+#-----------------------------------------
+
+if [ "$1" == "?" ] ;then
+  cmduse
+fi
+
+echo
+case $1 in
+  sql)
+    for f in `find -L ~/sql* -type f -print|sort|egrep -v "AVA|AvaRuns|avaruns|SDE|PPL|Compass|t*_audit*"` ;do
+      if [[ -s $f && "`egrep -i "^-- Call:" $f`" ]] ;then
+        printf  "%70s : %s \n" "$f" "`egrep -i "^-- Call:" $f`"  
+        printf  "%70s : %s \n" ' '  "`egrep -i "^--   eg:" $f`"
+        printf  "%70s : %s \n" ' '  "`egrep -i "^-- Goal:" $f`"
+        echo
+      fi
+    done
+  ;;
+  *)
+    for f in `ls -1L ~/bin.esu/*|sort` ;do
+      if [ -x $f ] ;then
+        printf  "%40s : %s \n" "$f" "`egrep -i "^# Call:" $f`"
+        printf  "%40s : %s \n" ' ' "`egrep -i "^#   eg:" $f`"
+        printf  "%40s : %s \n" ' ' "`egrep -i "^# Goal:" $f`"
+        echo
+      fi
+    done
+  ;;
+esac
+
+
